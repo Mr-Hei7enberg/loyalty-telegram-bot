@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Module } from '@nestjs/common';
 import { TelegrafModule } from 'nestjs-telegraf';
+import { session } from 'telegraf';
 import { TelegramUpdate } from './telegram.update';
 import { UsersModule } from '../users/users.module';
 dotenv.config();
@@ -13,6 +14,7 @@ if (!botToken) {
   imports: [
     TelegrafModule.forRoot({
       token: botToken, // токен из BotFather
+      middlewares: [session()],
     }),
     UsersModule,
   ],

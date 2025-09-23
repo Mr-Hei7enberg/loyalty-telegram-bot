@@ -1,26 +1,28 @@
 import { Update, Ctx, Start, On } from 'nestjs-telegraf';
-import { Context } from 'telegraf';
+import { Logger } from '@nestjs/common';
+import { Markup } from 'telegraf';
+import type { TelegramContext } from './interfaces/telegram-context.interface';
 import { UsersService } from '../users/users.service';
 
 @Update()
 export class TelegramUpdate {
+  private readonly logger = new Logger(TelegramUpdate.name);
+
   constructor(private readonly usersService: UsersService) {}
 
   @Start()
-  async start(@Ctx() ctx: Context) {
+  async start(@Ctx() ctx: TelegramContext) {
+    this.logger.log(`Start command from chat ${ctx.chat?.id}`);
     await ctx.reply(
-      'Привет! Нажми кнопку ниже, чтобы поделиться своим номером.',
-      {
-        reply_markup: {
-          keyboard: [[{ text: 'Поделиться номером', request_contact: true }]],
-          one_time_keyboard: true,
-        },
-      },
+      'Вітаємо у програмі лояльності! Поділіться номером телефону, щоб ми підтвердили ваш акаунт.',
+      Markup.keyboard([[Markup.button.contactRequest('Поділитись номером')]])
+        .oneTime()
+        .resize(),
     );
   }
 
   @On('message')
-  async handleContact(@Ctx() ctx: Context) {
+  async handleContact(@Ctx() ctx: TelegramContext) {
     const message: any = ctx.message;
 
     // Проверяем, есть ли контакт
@@ -29,6 +31,7 @@ export class TelegramUpdate {
     }
 
     const phone = message.contact.phone_number;
+    this.logger.debug(`Received contact ${phone} from chat ${ctx.chat?.id}`);
     const user = await this.usersService.getUserByPhone(phone);
 
     if (!user) {
@@ -39,7 +42,7 @@ export class TelegramUpdate {
     }
 
     await ctx.reply(
-      `Привет, ваш ID: ${user.id}\nНомер: ${user.phone}\nКарта: ${user.card_number}\nСкидка: ${user.discount_percent}%`,
+      `Вітаємо!\nID: ${user.id}\nНомер: ${user.phone}\nКарта: ${user.card_number}\nПерсональна знижка: ${user.discount_percent}%`,
     );
   }
 }
