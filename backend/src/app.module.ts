@@ -18,7 +18,7 @@ import { TelegramModule } from './telegram/telegram.module';
       synchronize: true,
     }),
     UsersModule,
-    TelegramModule,  // ← обязательно
+    TelegramModule, // ← обязательно
   ],
 })
 export class AppModule {}

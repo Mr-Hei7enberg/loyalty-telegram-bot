@@ -1,5 +1,5 @@
 import type { Context } from 'telegraf';
-import type { Update as TelegramUpdateType } from 'telegraf/types';
+import type { Message, Update as TelegramUpdateType } from 'telegraf/types';
 
 export interface UserSessionState {
   phoneNumber?: string;
@@ -17,5 +17,6 @@ export interface UserSessionState {
 }
 
 export type TelegramContext = Context<TelegramUpdateType> & {
+  message?: Message;
   session?: UserSessionState;
 };

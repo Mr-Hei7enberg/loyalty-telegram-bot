@@ -1,6 +1,7 @@
 import { Update, Ctx, Start, On } from 'nestjs-telegraf';
 import { Logger } from '@nestjs/common';
 import { Markup } from 'telegraf';
+import type { Message } from 'telegraf/types';
 import type { TelegramContext } from './interfaces/telegram-context.interface';
 import { UsersService } from '../users/users.service';
 
@@ -21,16 +22,27 @@ export class TelegramUpdate {
     );
   }
 
+  private isContactMessage(
+    message: Message | undefined,
+  ): message is Message.ContactMessage {
+    return (
+      typeof message === 'object' &&
+      message !== null &&
+      'contact' in message &&
+      typeof message.contact?.phone_number === 'string'
+    );
+  }
+
   @On('message')
   async handleContact(@Ctx() ctx: TelegramContext) {
-    const message: any = ctx.message;
+    const maybeMessage: Message | undefined = ctx.message;
 
-    // Проверяем, есть ли контакт
-    if (!message?.contact?.phone_number) {
+    if (!this.isContactMessage(maybeMessage)) {
       return; // Игнорируем все сообщения без контакта
     }
 
-    const phone = message.contact.phone_number;
+    const contactMessage: Message.ContactMessage = maybeMessage;
+    const phone = contactMessage.contact.phone_number;
     this.logger.debug(`Received contact ${phone} from chat ${ctx.chat?.id}`);
     const user = await this.usersService.getUserByPhone(phone);
 
