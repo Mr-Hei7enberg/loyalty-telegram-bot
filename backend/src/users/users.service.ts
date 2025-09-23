@@ -6,12 +6,11 @@ import { User } from './user.model';
 export class UsersService {
   constructor(
     @InjectModel(User)
-    private userModel: typeof User,
+    private readonly userModel: typeof User,
   ) {}
 
   async getUserByPhone(phone: string): Promise<User | null> {
-    const normalized = phone.replace(/\D/g, ''); // убираем всё кроме цифр
-    console.log('Normalized phone:', normalized);
+    const normalizedPhone = this.normalizePhone(phone);
 
     return this.userModel.findOne({
       where: this.userModel.sequelize!.where(
@@ -22,8 +21,12 @@ export class UsersService {
           '',
           'g',
         ),
-        normalized,
+        normalizedPhone,
       ),
     });
+  }
+
+  private normalizePhone(phone: string): string {
+    return phone.replace(/\D/g, '');
   }
 }
