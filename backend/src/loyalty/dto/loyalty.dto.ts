@@ -38,3 +38,40 @@ export interface UserInfoDto {
   discountPercent: number;
   monthlyStats: UserMonthlyStatsDto;
 }
+
+export interface UserInfoResponseDto {
+  message: string;
+  user: UserInfoDto;
+}
+
+export interface DiscountGroupsResponseDto {
+  message: string;
+  groups: DiscountGroupDto[];
+}
+
+export interface RegionsResponseDto {
+  message: string;
+  regions: RegionDto[];
+}
+
+export interface NetworksResponseDto {
+  message: string;
+  networks: RegionNetworkDto[];
+}
+
+export interface RegionLocationWithOrderDto extends RegionLocationDto {
+  order: number;
+}
+
+export interface LocationsResponseDto {
+  message: string;
+  locations: RegionLocationWithOrderDto[];
+}
+
+export interface GenerateCodeResponseDto {
+  message: string;
+  code: string;
+  expiresAt: number;
+  ttlSeconds: number;
+  imageDataUrl: string;
+}

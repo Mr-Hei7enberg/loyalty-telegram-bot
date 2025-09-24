@@ -26,6 +26,23 @@ npm run build # перша збірка створить структуру dist
 docker-compose up -d
 ```
 
+## Міграції БД
+
+SQL-скрипти для швидкого створення таблиць розташовані у каталозі
+`database/migrations`. Їх достатньо виконати послідовно за допомогою
+`psql` або будь-якого клієнта PostgreSQL:
+
+```bash
+psql "$DATABASE_URL" -f database/migrations/0001_create_users_and_purchases.sql
+psql "$DATABASE_URL" -f database/migrations/0002_create_discount_catalog.sql
+psql "$DATABASE_URL" -f database/migrations/0003_create_regions_directory.sql
+psql "$DATABASE_URL" -f database/migrations/0004_create_feedback_entries.sql
+psql "$DATABASE_URL" -f database/migrations/0005_create_user_action_logs.sql
+```
+
+Після застосування міграцій можна запускати застосунок або імпортувати
+тестові дані.
+
 ## Змінні середовища
 
 | Змінна | Опис |

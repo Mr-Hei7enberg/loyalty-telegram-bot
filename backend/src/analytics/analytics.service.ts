@@ -45,10 +45,12 @@ export class AnalyticsService {
       raw: true,
     });
 
-    const rows = rawRows as Array<{
+    type RawCountRow = {
       action: string;
       count: string | number | null;
-    }>;
+    };
+
+    const rows = rawRows as RawCountRow[];
 
     const actions = rows.map((row) => ({
       action: row.action,
