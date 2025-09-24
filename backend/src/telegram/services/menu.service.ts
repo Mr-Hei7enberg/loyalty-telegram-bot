@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Markup } from 'telegraf';
 import type { InlineKeyboardButton } from 'telegraf/types';
+import type { FeedbackContactPreference } from '../../feedback/feedback.types';
 import type {
-  DiscountGroup,
-  FeedbackContactPreference,
-  RegionInfo,
-  RegionNetwork,
-} from '../interfaces/loyalty.interface';
+  DiscountGroupView,
+  RegionNetworkView,
+  RegionView,
+} from './loyalty-content.service';
 
 @Injectable()
 export class MenuService {
@@ -26,7 +26,7 @@ export class MenuService {
     ]).resize();
   }
 
-  buildDiscountGroupsKeyboard(groups: DiscountGroup[]) {
+  buildDiscountGroupsKeyboard(groups: DiscountGroupView[]) {
     const buttons = groups.map((group) => [
       Markup.button.callback(group.title, `discount_group:${group.id}`),
     ]);
@@ -34,7 +34,7 @@ export class MenuService {
     return Markup.inlineKeyboard(buttons);
   }
 
-  buildRegionsKeyboard(regions: RegionInfo[]) {
+  buildRegionsKeyboard(regions: RegionView[]) {
     const buttons = regions.map((region) =>
       Markup.button.callback(region.title, `region:${region.id}`),
     );
@@ -42,7 +42,7 @@ export class MenuService {
     return Markup.inlineKeyboard(this.chunkButtons(buttons, 2));
   }
 
-  buildNetworksKeyboard(regionId: string, networks: RegionNetwork[]) {
+  buildNetworksKeyboard(regionId: string, networks: RegionNetworkView[]) {
     const buttons = networks.map((network) =>
       Markup.button.callback(
         network.title,

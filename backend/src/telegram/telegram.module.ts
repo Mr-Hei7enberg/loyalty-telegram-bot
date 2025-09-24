@@ -1,33 +1,39 @@
-import * as dotenv from 'dotenv';
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TelegrafModule } from 'nestjs-telegraf';
 import { session } from 'telegraf';
 import { TelegramUpdate } from './telegram.update';
 import { UsersModule } from '../users/users.module';
 import { MenuService } from './services/menu.service';
 import { LoyaltyContentService } from './services/loyalty-content.service';
-import { DynamicCodeService } from './services/dynamic-code.service';
-import { FeedbackService } from './services/feedback.service';
-dotenv.config();
+import { LoyaltyModule } from '../loyalty/loyalty.module';
+import { FeedbackModule } from '../feedback/feedback.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 
-const botToken = process.env.BOT_TOKEN;
-if (!botToken) {
-  throw new Error('BOT_TOKEN is not defined in environment variables');
-}
 @Module({
   imports: [
-    TelegrafModule.forRoot({
-      token: botToken, // токен из BotFather
-      middlewares: [session()],
+    ConfigModule,
+    TelegrafModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const token = configService.get<string>('BOT_TOKEN');
+
+        if (!token) {
+          throw new Error('BOT_TOKEN is not defined in environment variables');
+        }
+
+        return {
+          token,
+          middlewares: [session()],
+        };
+      },
     }),
     UsersModule,
+    LoyaltyModule,
+    FeedbackModule,
+    AnalyticsModule,
   ],
-  providers: [
-    TelegramUpdate,
-    MenuService,
-    LoyaltyContentService,
-    DynamicCodeService,
-    FeedbackService,
-  ],
+  providers: [TelegramUpdate, MenuService, LoyaltyContentService],
 })
 export class TelegramModule {}

@@ -1,14 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { DISCOUNT_GROUPS } from '../data/discount-groups.data';
-import { REGIONS } from '../data/regions.data';
-import type {
-  DiscountGroup,
-  RegionInfo,
-  RegionNetwork,
-} from '../interfaces/loyalty.interface';
+import { LoyaltyService } from '../../loyalty/services/loyalty.service';
+
+export interface DiscountGroupView {
+  id: string;
+  title: string;
+  items: string[];
+}
+
+export interface RegionNetworkView {
+  id: string;
+  title: string;
+  locations: string[];
+}
+
+export interface RegionView {
+  id: string;
+  title: string;
+  networks: RegionNetworkView[];
+}
 
 @Injectable()
 export class LoyaltyContentService {
+  constructor(private readonly loyaltyService: LoyaltyService) {}
+
   getDiscountIntroduction(discountPercent?: number) {
     const percentText = discountPercent
       ? `Ваша персональна знижка: ${discountPercent}%`
@@ -25,26 +39,72 @@ export class LoyaltyContentService {
     ].join('\n');
   }
 
-  getDiscountGroups(): DiscountGroup[] {
-    return DISCOUNT_GROUPS;
+  async getDiscountGroups(): Promise<DiscountGroupView[]> {
+    const groups = await this.loyaltyService.getDiscountGroups();
+
+    return groups.map((group) => ({
+      id: group.id,
+      title: group.title,
+      items: group.items?.map((item) => item.title) ?? [],
+    }));
   }
 
-  findDiscountGroup(groupId: string): DiscountGroup | undefined {
-    return DISCOUNT_GROUPS.find((group) => group.id === groupId);
+  async findDiscountGroup(
+    groupId: string,
+  ): Promise<DiscountGroupView | undefined> {
+    const group = await this.loyaltyService.findDiscountGroup(groupId);
+
+    if (!group) {
+      return undefined;
+    }
+
+    return {
+      id: group.id,
+      title: group.title,
+      items: group.items?.map((item) => item.title) ?? [],
+    };
   }
 
-  getRegions(): RegionInfo[] {
-    return REGIONS;
+  async getRegions(): Promise<RegionView[]> {
+    const regions = await this.loyaltyService.getRegions();
+
+    return Promise.all(
+      regions.map(async (region) => ({
+        id: region.id,
+        title: region.title,
+        networks: await this.getNetworks(region.id),
+      })),
+    );
   }
 
-  findRegion(regionId: string): RegionInfo | undefined {
-    return REGIONS.find((region) => region.id === regionId);
+  async findRegion(regionId: string): Promise<RegionView | undefined> {
+    const regions = await this.getRegions();
+
+    return regions.find((region) => region.id === regionId);
   }
 
-  findNetwork(regionId: string, networkId: string): RegionNetwork | undefined {
-    const region = this.findRegion(regionId);
+  async getNetworks(regionId: string): Promise<RegionNetworkView[]> {
+    const networks = await this.loyaltyService.getNetworks(regionId);
 
-    return region?.networks.find((network) => network.id === networkId);
+    return Promise.all(
+      networks.map(async (network) => ({
+        id: network.id,
+        title: network.title,
+        locations: await this.getLocations(network.id),
+      })),
+    );
+  }
+
+  async findNetwork(regionId: string, networkId: string) {
+    const networks = await this.getNetworks(regionId);
+
+    return networks.find((network) => network.id === networkId);
+  }
+
+  async getLocations(networkId: string) {
+    const locations = await this.loyaltyService.getLocations(networkId);
+
+    return locations.map((location) => location.address);
   }
 
   formatItemsList(items: string[]): string {

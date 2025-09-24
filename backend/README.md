@@ -1,98 +1,99 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Loyalty Telegram Bot Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS сервіс для програми лояльності мережі АЗС. Бекенд надає REST API, інтегрується з Telegram-ботом, PostgreSQL і Redis та забезпечує авторизацію за допомогою JWT.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Основні можливості
 
-## Description
+- Авторизація API-клієнтів через JWT з TTL 1 година (токени зберігаються у Redis).
+- Автоматичний розрахунок персональної знижки залежно від кількості покупок за поточний місяць.
+- Ендпоінти для роботи з даними програми лояльності (знижки, мережі, локації, генерація QR/штрих-кодів).
+- Збір звернень користувачів та логування ключових дій для подальшої аналітики.
+- Telegram-бот для взаємодії з водіями-дальнобійниками.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Необхідні сервіси
 
-## Project setup
+- PostgreSQL 15+
+- Redis 7+
+- Node.js 18+
+
+Запустити базу та Redis для локальної розробки можна через `docker-compose`:
 
 ```bash
-$ npm install
+cp .env.example .env
+# відредагуйте значення змінних середовища
+npm install
+npm run build # перша збірка створить структуру dist (необов'язково)
+docker-compose up -d
 ```
 
-## Compile and run the project
+## Змінні середовища
+
+| Змінна | Опис |
+| --- | --- |
+| `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Параметри підключення до PostgreSQL. |
+| `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` (необов'язково), `REDIS_USE_TLS` | Налаштування підключення до Redis. |
+| `BOT_TOKEN` | Токен Telegram-бота. |
+| `AUTH_CLIENT_ID`, `AUTH_CLIENT_SECRET`, `AUTH_JWT_SECRET`, `AUTH_TOKEN_TTL` | Налаштування API-авторизації. `AUTH_TOKEN_TTL` за замовчуванням 3600 секунд. |
+| `PORT` | Порт HTTP сервера (за замовчуванням 3000). |
+| `DB_LOGGING` | Встановіть `true`, щоб бачити SQL у логах. |
+
+Файл `.env.example` потрібно створити самостійно на основі таблиці вище.
+
+## Структура REST API
+
+| Метод | Маршрут | Опис |
+| --- | --- | --- |
+| `POST` | `/auth/login` | Отримання JWT токену за клієнтськими обліковими даними. |
+| `POST` | `/auth/logout` | Деактивація поточного токена. |
+| `GET` | `/user-info?phone=...` | Інформація про користувача, розрахована знижка та статистика покупок. |
+| `GET` | `/discount-items` | Перелік груп товарів зі знижками. |
+| `GET` | `/regions` | Список областей, де діє програма. |
+| `GET` | `/networks?region=...` | Мережі в обраній області. |
+| `GET` | `/locations?network=...` | Локації мережі. |
+| `GET` | `/generate-code?card_id=...` | Генерація QR/штрих-коду з TTL ~2 хвилини. |
+| `POST` | `/feedback` | Створення звернення зі скаргою або пропозицією. |
+| `GET` | `/admin/analytics` | Узагальнена статистика використання бота. |
+
+Усі запити (окрім `/auth/login`) потребують заголовок `Authorization: Bearer <token>`.
+
+## Telegram-бот
+
+- `/start` — запит номера телефону та авторизація користувача.
+- Кнопки меню: **Моя знижка**, **Моя карта**, **Мережа АЗС зі знижкою**, **Скарга / Пропозиція**.
+- Динамічні QR/штрих-коди генеруються з TTL ~150 секунд і кешуються у Redis.
+- Натискання кнопок, генерація кодів та надсилання звернень логуються у таблиці `user_action_logs`.
+
+## Тестові дані
+
+Під час старту сервіс автоматично засіває базу довідниками знижок і регіонів, якщо таблиці порожні. Для імітації користувачів необхідно самостійно додати записи у таблицю `users` та пов’язані покупки у `purchases`.
+
+## Сценарій запуску
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cd backend
+npm install
+npm run start:dev
 ```
 
-## Run tests
+Telegram-бот буде активовано автоматично після підключення до Bot API.
+
+## Тести та лінтинг
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run lint
+npm run test
 ```
 
-## Deployment
+## Стилі коду
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- ESLint + Prettier налаштовані для проєкту.
+- Весь текст спілкування з користувачами — українською мовою.
+- Використовуйте SOLID-підхід: бізнес-логіка винесена у сервіс `LoyaltyService`, інтеграції з БД — через окремі репозиторії/моделі.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Статистика та аналітика
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+Таблиця `user_action_logs` містить усі ключові дії користувача. Для отримання агрегованих даних використовуйте `GET /admin/analytics` (авторизація обов’язкова).
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Звернення
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Записи зі зверненнями зберігаються у таблиці `feedback_entries`. Надалі можна інтегрувати відправлення email або webhooks у сервісі `FeedbackService`.

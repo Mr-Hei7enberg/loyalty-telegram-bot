@@ -1,0 +1,46 @@
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  ForeignKey,
+  BelongsTo,
+} from 'sequelize-typescript';
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from 'sequelize';
+import { DiscountGroup } from './discount-group.model';
+
+@Table({
+  tableName: 'discount_items',
+  timestamps: false,
+})
+export class DiscountItem extends Model<
+  InferAttributes<DiscountItem>,
+  InferCreationAttributes<DiscountItem>
+> {
+  @Column({
+    type: DataType.STRING,
+    primaryKey: true,
+  })
+  declare id: string;
+
+  @ForeignKey(() => DiscountGroup)
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    field: 'group_id',
+  })
+  declare groupId: string;
+
+  @BelongsTo(() => DiscountGroup)
+  declare group?: NonAttribute<DiscountGroup>;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  declare title: string;
+}
