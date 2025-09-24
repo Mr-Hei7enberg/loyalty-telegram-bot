@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import type { CreationAttributes } from 'sequelize';
 import { DiscountGroup } from '../entities/discount-group.model';
 import { DiscountItem } from '../entities/discount-item.model';
 import { DISCOUNT_GROUPS } from '../data/discount-groups.seed';
@@ -56,18 +57,23 @@ export class DiscountCatalogService {
 
     if (count === 0) {
       for (const group of DISCOUNT_GROUPS) {
-        await this.discountGroupModel.create({
+        const groupPayload: CreationAttributes<DiscountGroup> = {
           id: group.id,
           title: group.title,
-        });
+        };
 
-        await this.discountItemModel.bulkCreate(
+        await this.discountGroupModel.create(groupPayload);
+
+        const itemsPayload: Array<CreationAttributes<DiscountItem>> =
           group.items.map((item, index) => ({
             id: `${group.id}-${index + 1}`,
             title: item,
             groupId: group.id,
-          })),
-        );
+          }));
+
+        if (itemsPayload.length > 0) {
+          await this.discountItemModel.bulkCreate(itemsPayload);
+        }
       }
     }
 

@@ -1,5 +1,5 @@
-import { IsIn, IsNotEmpty, IsString, MaxLength } from 'class-validator';
-import type { FeedbackContactPreference } from '../feedback.types';
+import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { FeedbackContactPreference } from '../feedback.types';
 
 export class CreateFeedbackDto {
   @IsString()
@@ -11,6 +11,6 @@ export class CreateFeedbackDto {
   @MaxLength(1000)
   message!: string;
 
-  @IsIn(['call', 'telegram'])
+  @IsEnum(FeedbackContactPreference)
   contactPreference!: FeedbackContactPreference;
 }

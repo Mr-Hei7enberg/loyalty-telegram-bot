@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Markup } from 'telegraf';
 import type { InlineKeyboardButton } from 'telegraf/types';
-import type { FeedbackContactPreference } from '../../feedback/feedback.types';
+import { FeedbackContactPreference } from '../../feedback/feedback.types';
 import type {
   DiscountGroupView,
   RegionNetworkView,
@@ -54,12 +54,26 @@ export class MenuService {
   }
 
   buildFeedbackContactKeyboard(selected?: FeedbackContactPreference) {
-    const callLabel = `${selected === 'call' ? '✅ ' : ''}Подзвоніть мені`;
-    const telegramLabel = `${selected === 'telegram' ? '✅ ' : ''}Напишіть мені у Telegram`;
+    const callLabel = `${
+      selected === FeedbackContactPreference.Call ? '✅ ' : ''
+    }Подзвоніть мені`;
+    const telegramLabel = `${
+      selected === FeedbackContactPreference.Telegram ? '✅ ' : ''
+    }Напишіть мені у Telegram`;
 
     return Markup.inlineKeyboard([
-      [Markup.button.callback(callLabel, 'feedback_contact:call')],
-      [Markup.button.callback(telegramLabel, 'feedback_contact:telegram')],
+      [
+        Markup.button.callback(
+          callLabel,
+          `feedback_contact:${FeedbackContactPreference.Call}`,
+        ),
+      ],
+      [
+        Markup.button.callback(
+          telegramLabel,
+          `feedback_contact:${FeedbackContactPreference.Telegram}`,
+        ),
+      ],
     ]);
   }
 

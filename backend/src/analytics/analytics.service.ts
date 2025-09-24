@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { UserActionLog } from './entities/user-action-log.model';
+import type { CreationAttributes } from 'sequelize';
 
 export interface AnalyticsEventPayload {
   userId?: number;
@@ -19,12 +20,14 @@ export class AnalyticsService {
   ) {}
 
   async record(action: string, payload: AnalyticsEventPayload = {}) {
-    await this.logModel.create({
+    const payloadToPersist: CreationAttributes<UserActionLog> = {
       action,
       userId: payload.userId ?? null,
       phoneNumber: payload.phoneNumber ?? null,
       metadata: payload.metadata ?? null,
-    });
+    };
+
+    await this.logModel.create(payloadToPersist);
 
     this.logger.debug(`Зафіксовано подію ${action}`);
   }

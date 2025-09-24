@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import type { CreationAttributes } from 'sequelize';
 import { Region } from '../entities/region.model';
 import { RegionNetwork } from '../entities/region-network.model';
 import { RegionLocation } from '../entities/region-location.model';
@@ -53,26 +54,33 @@ export class RegionDirectoryService {
 
     if (count === 0) {
       for (const region of REGIONS) {
-        await this.regionModel.create({
+        const regionPayload: CreationAttributes<Region> = {
           id: region.id,
           title: region.title,
-        });
+        };
+
+        await this.regionModel.create(regionPayload);
 
         for (const network of region.networks) {
-          await this.networkModel.create({
+          const networkPayload: CreationAttributes<RegionNetwork> = {
             id: network.id,
             regionId: region.id,
             title: network.title,
-          });
+          };
 
-          await this.locationModel.bulkCreate(
+          await this.networkModel.create(networkPayload);
+
+          const locationsPayload: Array<CreationAttributes<RegionLocation>> =
             network.locations.map((location, index) => ({
               id: `${network.id}-${index + 1}`,
               title: location,
               address: location,
               networkId: network.id,
-            })),
-          );
+            }));
+
+          if (locationsPayload.length > 0) {
+            await this.locationModel.bulkCreate(locationsPayload);
+          }
         }
       }
     }

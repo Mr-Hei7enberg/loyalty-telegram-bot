@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { FeedbackEntry } from './entities/feedback.model';
 import type { FeedbackContactPreference } from './feedback.types';
+import type { CreationAttributes } from 'sequelize';
 
 export interface FeedbackPayload {
   phoneNumber: string;
@@ -19,11 +20,13 @@ export class FeedbackService {
   ) {}
 
   async submitFeedback(payload: FeedbackPayload) {
-    await this.feedbackModel.create({
+    const feedback: CreationAttributes<FeedbackEntry> = {
       phoneNumber: payload.phoneNumber,
       message: payload.message,
       contactPreference: payload.contactPreference,
-    });
+    };
+
+    await this.feedbackModel.create(feedback);
 
     this.logger.log(
       `Отримано звернення від ${payload.phoneNumber} (${payload.contactPreference})`,

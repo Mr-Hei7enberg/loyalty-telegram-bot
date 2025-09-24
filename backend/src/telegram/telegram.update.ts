@@ -5,7 +5,7 @@ import { MenuService } from './services/menu.service';
 import { LoyaltyContentService } from './services/loyalty-content.service';
 import { DynamicCodeService } from '../loyalty/services/dynamic-code.service';
 import { FeedbackService } from '../feedback/feedback.service';
-import type { FeedbackContactPreference } from '../feedback/feedback.types';
+import { isFeedbackContactPreference } from '../feedback/feedback.types';
 import { LoyaltyService } from '../loyalty/services/loyalty.service';
 import { AnalyticsService } from '../analytics/analytics.service';
 
@@ -420,26 +420,26 @@ export class TelegramUpdate {
     }
 
     const [, preferenceRaw] = data.split(':');
-    const preference = preferenceRaw as FeedbackContactPreference | undefined;
 
-    if (!preference) {
+    if (!isFeedbackContactPreference(preferenceRaw)) {
       await ctx.answerCbQuery();
       return;
     }
 
-    session.feedbackDraft.contactPreference = preference;
+    session.feedbackDraft.contactPreference = preferenceRaw;
 
     await this.analyticsService.record('feedback_contact_selected', {
       userId: session.userId,
       phoneNumber: session.phoneNumber,
-      metadata: { preference },
+      metadata: { preference: preferenceRaw },
     });
 
     await ctx.answerCbQuery('Спосіб зв’язку збережено.');
 
     try {
       await ctx.editMessageReplyMarkup(
-        this.menuService.buildFeedbackContactKeyboard(preference).reply_markup,
+        this.menuService.buildFeedbackContactKeyboard(preferenceRaw)
+          .reply_markup,
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
