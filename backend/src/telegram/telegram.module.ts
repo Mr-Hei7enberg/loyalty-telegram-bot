@@ -4,6 +4,8 @@ import { TelegrafModule } from 'nestjs-telegraf';
 import { session } from 'telegraf';
 import { TelegramUpdate } from './telegram.update';
 import { UsersModule } from '../users/users.module';
+import { MenuService } from './services/menu.service';
+import { LoyaltyModule } from '../loyalty/loyalty.module';
 dotenv.config();
 
 const botToken = process.env.BOT_TOKEN;
@@ -17,7 +19,8 @@ if (!botToken) {
       middlewares: [session()],
     }),
     UsersModule,
+    LoyaltyModule,
   ],
-  providers: [TelegramUpdate],
+  providers: [TelegramUpdate, MenuService],
 })
 export class TelegramModule {}
