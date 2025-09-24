@@ -50,7 +50,7 @@ export class AnalyticsService {
       count: string | number | null;
     };
 
-    const rows = rawRows as RawCountRow[];
+    const rows = rawRows as unknown as RawCountRow[];
 
     const actions = rows.map((row) => ({
       action: row.action,
