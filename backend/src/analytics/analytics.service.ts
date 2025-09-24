@@ -36,10 +36,7 @@ export class AnalyticsService {
       return { total: 0, actions: [] };
     }
 
-    const rows = await this.logModel.findAll<{
-      action: string;
-      count: unknown;
-    }>({
+    const rawRows = await this.logModel.findAll({
       attributes: [
         'action',
         [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
@@ -47,6 +44,11 @@ export class AnalyticsService {
       group: ['action'],
       raw: true,
     });
+
+    const rows = rawRows as Array<{
+      action: string;
+      count: string | number | null;
+    }>;
 
     const actions = rows.map((row) => ({
       action: row.action,

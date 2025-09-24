@@ -47,7 +47,7 @@ export class LoyaltyController {
       groups: groups.map((group) => ({
         id: group.id,
         title: group.title,
-        items: group.items?.map((item) => ({
+        items: group.items.map((item) => ({
           id: item.id,
           title: item.title,
         })),

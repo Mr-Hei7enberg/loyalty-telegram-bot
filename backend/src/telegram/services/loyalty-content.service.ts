@@ -45,7 +45,7 @@ export class LoyaltyContentService {
     return groups.map((group) => ({
       id: group.id,
       title: group.title,
-      items: group.items?.map((item) => item.title) ?? [],
+      items: group.items.map((item) => item.title),
     }));
   }
 
@@ -61,7 +61,7 @@ export class LoyaltyContentService {
     return {
       id: group.id,
       title: group.title,
-      items: group.items?.map((item) => item.title) ?? [],
+      items: group.items.map((item) => item.title),
     };
   }
 

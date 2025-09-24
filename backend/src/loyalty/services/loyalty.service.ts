@@ -3,6 +3,19 @@ import { UsersService } from '../../users/users.service';
 import { DiscountCatalogService } from './discount-catalog.service';
 import { RegionDirectoryService } from './region-directory.service';
 import { PurchasesService } from './purchases.service';
+import type {
+  DiscountGroupDto,
+  DiscountItemDto,
+  RegionDto,
+  RegionLocationDto,
+  RegionNetworkDto,
+  UserInfoDto,
+} from '../dto/loyalty.dto';
+import type { DiscountGroup } from '../entities/discount-group.model';
+import type { DiscountItem } from '../entities/discount-item.model';
+import type { Region } from '../entities/region.model';
+import type { RegionNetwork } from '../entities/region-network.model';
+import type { RegionLocation } from '../entities/region-location.model';
 
 @Injectable()
 export class LoyaltyService {
@@ -13,7 +26,7 @@ export class LoyaltyService {
     private readonly regionDirectoryService: RegionDirectoryService,
   ) {}
 
-  async getUserInfoByPhone(phone: string) {
+  async getUserInfoByPhone(phone: string): Promise<UserInfoDto | null> {
     const user = await this.usersService.getUserByPhone(phone);
 
     if (!user) {
@@ -27,27 +40,82 @@ export class LoyaltyService {
       phone: user.phone,
       cardNumber: user.card_number ?? null,
       discountPercent: stats.discountPercent,
-      monthlyStats: stats,
+      monthlyStats: {
+        uniqueDays: stats.uniqueDays,
+        totalChecks: stats.totalChecks,
+        discountPercent: stats.discountPercent,
+      },
     };
   }
 
-  getDiscountGroups() {
-    return this.discountCatalogService.getGroupsWithItems();
+  async getDiscountGroups(): Promise<DiscountGroupDto[]> {
+    const groups = await this.discountCatalogService.getGroupsWithItems();
+
+    return groups.map((group) => this.mapDiscountGroup(group));
   }
 
-  findDiscountGroup(groupId: string) {
-    return this.discountCatalogService.findGroup(groupId);
+  async findDiscountGroup(groupId: string): Promise<DiscountGroupDto | null> {
+    const group = await this.discountCatalogService.findGroup(groupId);
+
+    if (!group) {
+      return null;
+    }
+
+    return this.mapDiscountGroup(group);
   }
 
-  getRegions() {
-    return this.regionDirectoryService.getRegions();
+  async getRegions(): Promise<RegionDto[]> {
+    const regions = await this.regionDirectoryService.getRegions();
+
+    return regions.map((region) => this.mapRegion(region));
   }
 
-  getNetworks(regionId: string) {
-    return this.regionDirectoryService.getNetworks(regionId);
+  async getNetworks(regionId: string): Promise<RegionNetworkDto[]> {
+    const networks = await this.regionDirectoryService.getNetworks(regionId);
+
+    return networks.map((network) => this.mapNetwork(network));
   }
 
-  getLocations(networkId: string) {
-    return this.regionDirectoryService.getLocations(networkId);
+  async getLocations(networkId: string): Promise<RegionLocationDto[]> {
+    const locations = await this.regionDirectoryService.getLocations(networkId);
+
+    return locations.map((location) => this.mapLocation(location));
+  }
+
+  private mapDiscountGroup(group: DiscountGroup): DiscountGroupDto {
+    return {
+      id: group.id,
+      title: group.title,
+      items: this.mapItems(group.items ?? []),
+    };
+  }
+
+  private mapItems(items: DiscountItem[]): DiscountItemDto[] {
+    return items.map((item) => ({
+      id: item.id,
+      title: item.title,
+    }));
+  }
+
+  private mapRegion(region: Region): RegionDto {
+    return {
+      id: region.id,
+      title: region.title,
+    };
+  }
+
+  private mapNetwork(network: RegionNetwork): RegionNetworkDto {
+    return {
+      id: network.id,
+      title: network.title,
+    };
+  }
+
+  private mapLocation(location: RegionLocation): RegionLocationDto {
+    return {
+      id: location.id,
+      title: location.title,
+      address: location.address,
+    };
   }
 }
