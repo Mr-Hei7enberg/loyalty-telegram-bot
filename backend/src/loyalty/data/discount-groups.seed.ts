@@ -1,6 +1,6 @@
-import type { DiscountGroup } from '../interfaces/loyalty.interface';
+import type { DiscountGroupSeed } from '../interfaces/loyalty.interface';
 
-export const DISCOUNT_GROUPS: DiscountGroup[] = [
+export const DISCOUNT_GROUPS: DiscountGroupSeed[] = [
   {
     id: 'beverages',
     title: 'Напої',

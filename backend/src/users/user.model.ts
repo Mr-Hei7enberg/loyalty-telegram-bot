@@ -1,4 +1,6 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
+import { Purchase } from '../loyalty/entities/purchase.model';
+import { UserActionLog } from '../analytics/entities/user-action-log.model';
 
 @Table({ tableName: 'users', timestamps: false }) // отключаем createdAt/updatedAt если их нет
 export class User extends Model<User> {
@@ -24,4 +26,10 @@ export class User extends Model<User> {
     type: DataType.INTEGER,
   })
   declare discount_percent: number;
+
+  @HasMany(() => Purchase)
+  declare purchases?: Purchase[];
+
+  @HasMany(() => UserActionLog)
+  declare actions?: UserActionLog[];
 }
