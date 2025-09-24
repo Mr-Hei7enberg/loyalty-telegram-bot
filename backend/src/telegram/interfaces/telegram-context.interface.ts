@@ -1,5 +1,6 @@
 import type { Context } from 'telegraf';
 import type { Update as TelegramUpdateType } from 'telegraf/types';
+import type { FeedbackContactPreference } from './loyalty.interface';
 
 export interface UserSessionState {
   phoneNumber?: string;
@@ -11,7 +12,7 @@ export interface UserSessionState {
     expiresAt: number;
   };
   feedbackDraft?: {
-    contactPreference?: 'call' | 'telegram';
+    contactPreference?: FeedbackContactPreference;
     message?: string;
   };
 }
