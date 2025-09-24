@@ -1,8 +1,9 @@
 import type { Context } from 'telegraf';
 import type { Update as TelegramUpdateType } from 'telegraf/types';
-import type { FeedbackContactPreference } from './loyalty.interface';
+import type { FeedbackContactPreference } from '../../feedback/feedback.types';
 
 export interface UserSessionState {
+  userId?: number;
   phoneNumber?: string;
   cardNumber?: string;
   discountPercent?: number;

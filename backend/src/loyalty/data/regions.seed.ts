@@ -1,6 +1,6 @@
-import type { RegionInfo } from '../interfaces/loyalty.interface';
+import type { RegionInfoSeed } from '../interfaces/loyalty.interface';
 
-export const REGIONS: RegionInfo[] = [
+export const REGIONS: RegionInfoSeed[] = [
   {
     id: 'kyivska',
     title: 'Київська область',

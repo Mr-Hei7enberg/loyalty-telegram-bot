@@ -1,12 +1,13 @@
 import { Update, Ctx, Start, On, Hears, Action } from 'nestjs-telegraf';
 import { Logger } from '@nestjs/common';
 import type { TelegramContext } from './interfaces/telegram-context.interface';
-import { UsersService } from '../users/users.service';
 import { MenuService } from './services/menu.service';
 import { LoyaltyContentService } from './services/loyalty-content.service';
-import { DynamicCodeService } from './services/dynamic-code.service';
-import { FeedbackService } from './services/feedback.service';
-import type { FeedbackContactPreference } from './interfaces/loyalty.interface';
+import { DynamicCodeService } from '../loyalty/services/dynamic-code.service';
+import { FeedbackService } from '../feedback/feedback.service';
+import type { FeedbackContactPreference } from '../feedback/feedback.types';
+import { LoyaltyService } from '../loyalty/services/loyalty.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 const MAIN_MENU_COMMANDS = new Set([
   'Моя знижка',
@@ -20,17 +21,22 @@ export class TelegramUpdate {
   private readonly logger = new Logger(TelegramUpdate.name);
 
   constructor(
-    private readonly usersService: UsersService,
+    private readonly loyaltyService: LoyaltyService,
     private readonly menuService: MenuService,
     private readonly loyaltyContentService: LoyaltyContentService,
     private readonly dynamicCodeService: DynamicCodeService,
     private readonly feedbackService: FeedbackService,
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
   @Start()
   async start(@Ctx() ctx: TelegramContext) {
     this.logger.log(`Start command from chat ${ctx.chat?.id}`);
     this.resetSession(ctx);
+
+    await this.analyticsService.record('bot_start', {
+      metadata: { chatId: ctx.chat?.id },
+    });
 
     await ctx.reply(
       'Вітаємо у програмі лояльності! Поділіться номером телефону, щоб ми підтвердили ваш акаунт.',
@@ -48,7 +54,7 @@ export class TelegramUpdate {
 
     this.logger.debug(`Received contact ${phone} from chat ${ctx.chat?.id}`);
 
-    const user = await this.usersService.getUserByPhone(phone);
+    const user = await this.loyaltyService.getUserInfoByPhone(phone);
 
     if (!user) {
       this.logger.warn(`User with phone ${phone} not found`);
@@ -59,23 +65,34 @@ export class TelegramUpdate {
         'Якщо вважаєте, що сталася помилка, надішліть правильний номер телефону або зверніться до менеджера.',
         this.menuService.buildContactRequestKeyboard(),
       );
+      await this.analyticsService.record('auth_failed', {
+        metadata: { phone },
+      });
       return;
     }
 
     const session = this.getSession(ctx);
     session.isAuthenticated = true;
     session.phoneNumber = user.phone;
-    session.cardNumber = user.card_number ?? '';
-    session.discountPercent = user.discount_percent ?? undefined;
+    session.cardNumber = user.cardNumber ?? '';
+    session.discountPercent = user.discountPercent ?? undefined;
     session.dynamicCode = undefined;
     session.feedbackDraft = undefined;
+    session.userId = user.id;
+
+    await this.analyticsService.record('user_authenticated', {
+      userId: user.id,
+      phoneNumber: user.phone,
+      metadata: { chatId: ctx.chat?.id },
+    });
 
     await ctx.reply(
       [
         'Вітаємо! Ваш акаунт підтверджено.',
         `Номер телефону: ${user.phone}`,
-        `Номер картки: ${user.card_number ?? '—'}`,
-        `Поточна знижка: ${user.discount_percent ?? 0}%`,
+        `Номер картки: ${user.cardNumber ?? '—'}`,
+        `Поточна знижка: ${user.discountPercent}%`,
+        `Чеків цього місяця: ${user.monthlyStats.totalChecks} (днів із покупками: ${user.monthlyStats.uniqueDays})`,
         '',
         'Оберіть потрібну функцію за допомогою кнопок нижче.',
       ].join('\n'),
@@ -90,10 +107,26 @@ export class TelegramUpdate {
     }
 
     const session = this.getSession(ctx);
+    if (session.phoneNumber) {
+      const updated = await this.loyaltyService.getUserInfoByPhone(
+        session.phoneNumber,
+      );
+
+      if (updated) {
+        session.discountPercent = updated.discountPercent;
+        session.userId = updated.id;
+      }
+    }
+
     const discountIntro = this.loyaltyContentService.getDiscountIntroduction(
       session.discountPercent,
     );
-    const groups = this.loyaltyContentService.getDiscountGroups();
+    const groups = await this.loyaltyContentService.getDiscountGroups();
+
+    await this.analyticsService.record('menu_discount', {
+      userId: session.userId,
+      phoneNumber: session.phoneNumber,
+    });
 
     await ctx.reply(
       discountIntro,
@@ -127,7 +160,7 @@ export class TelegramUpdate {
       return;
     }
 
-    const group = this.loyaltyContentService.findDiscountGroup(groupId);
+    const group = await this.loyaltyContentService.findDiscountGroup(groupId);
 
     if (!group) {
       await ctx.answerCbQuery('Не вдалося знайти групу товарів.', {
@@ -140,10 +173,17 @@ export class TelegramUpdate {
 
     const itemsList = this.loyaltyContentService.formatItemsList(group.items);
 
+    const session = this.getSession(ctx);
+    await this.analyticsService.record('discount_group_opened', {
+      userId: session.userId,
+      phoneNumber: session.phoneNumber,
+      metadata: { groupId },
+    });
+
     await ctx.reply(
       `Товари категорії «${group.title}» зі знижкою:\n${itemsList}`,
       this.menuService.buildDiscountGroupsKeyboard(
-        this.loyaltyContentService.getDiscountGroups(),
+        await this.loyaltyContentService.getDiscountGroups(),
       ),
     );
   }
@@ -155,6 +195,11 @@ export class TelegramUpdate {
     }
 
     const session = this.getSession(ctx);
+
+    await this.analyticsService.record('menu_card', {
+      userId: session.userId,
+      phoneNumber: session.phoneNumber,
+    });
 
     if (!session.cardNumber) {
       await ctx.reply(
@@ -172,6 +217,12 @@ export class TelegramUpdate {
       const expiryTime = this.dynamicCodeService.formatExpiry(
         dynamicCode.expiresAt,
       );
+
+      await this.analyticsService.record('card_code_generated', {
+        userId: session.userId,
+        phoneNumber: session.phoneNumber,
+        metadata: { isNew: dynamicCode.isNew },
+      });
 
       await ctx.replyWithPhoto(
         { source: dynamicCode.image },
@@ -195,7 +246,13 @@ export class TelegramUpdate {
       return;
     }
 
-    const regions = this.loyaltyContentService.getRegions();
+    const regions = await this.loyaltyContentService.getRegions();
+
+    const session = this.getSession(ctx);
+    await this.analyticsService.record('menu_networks', {
+      userId: session.userId,
+      phoneNumber: session.phoneNumber,
+    });
 
     await ctx.reply(
       'Оберіть область України, щоб переглянути партнерські мережі АЗС:',
@@ -229,7 +286,7 @@ export class TelegramUpdate {
       return;
     }
 
-    const region = this.loyaltyContentService.findRegion(regionId);
+    const region = await this.loyaltyContentService.findRegion(regionId);
 
     if (!region) {
       await ctx.answerCbQuery('Область не знайдено.', { show_alert: true });
@@ -244,6 +301,13 @@ export class TelegramUpdate {
       );
       return;
     }
+
+    const session = this.getSession(ctx);
+    await this.analyticsService.record('region_selected', {
+      userId: session.userId,
+      phoneNumber: session.phoneNumber,
+      metadata: { regionId },
+    });
 
     await ctx.reply(
       `Мережі, що діють у регіоні «${region.title}»:`,
@@ -277,7 +341,10 @@ export class TelegramUpdate {
       return;
     }
 
-    const network = this.loyaltyContentService.findNetwork(regionId, networkId);
+    const network = await this.loyaltyContentService.findNetwork(
+      regionId,
+      networkId,
+    );
 
     if (!network) {
       await ctx.answerCbQuery('Партнерську мережу не знайдено.', {
@@ -292,6 +359,13 @@ export class TelegramUpdate {
       network.locations,
     );
 
+    const session = this.getSession(ctx);
+    await this.analyticsService.record('network_selected', {
+      userId: session.userId,
+      phoneNumber: session.phoneNumber,
+      metadata: { regionId, networkId },
+    });
+
     await ctx.reply(`Точки мережі «${network.title}»:\n${locations}`);
   }
 
@@ -303,6 +377,11 @@ export class TelegramUpdate {
 
     const session = this.getSession(ctx);
     session.feedbackDraft = {};
+
+    await this.analyticsService.record('menu_feedback', {
+      userId: session.userId,
+      phoneNumber: session.phoneNumber,
+    });
 
     await ctx.reply(
       'Оберіть бажаний спосіб зв’язку з вами:',
@@ -349,6 +428,12 @@ export class TelegramUpdate {
     }
 
     session.feedbackDraft.contactPreference = preference;
+
+    await this.analyticsService.record('feedback_contact_selected', {
+      userId: session.userId,
+      phoneNumber: session.phoneNumber,
+      metadata: { preference },
+    });
 
     await ctx.answerCbQuery('Спосіб зв’язку збережено.');
 
@@ -399,10 +484,15 @@ export class TelegramUpdate {
       return;
     }
 
-    this.feedbackService.submitFeedback({
+    await this.feedbackService.submitFeedback({
       phoneNumber: session.phoneNumber ?? 'невідомий номер',
       message: draft.message,
       contactPreference: draft.contactPreference,
+    });
+
+    await this.analyticsService.record('feedback_submitted', {
+      userId: session.userId,
+      phoneNumber: session.phoneNumber,
     });
 
     session.feedbackDraft = undefined;
@@ -421,6 +511,10 @@ export class TelegramUpdate {
     }
 
     session.feedbackDraft = undefined;
+    await this.analyticsService.record('feedback_cancelled', {
+      userId: session.userId,
+      phoneNumber: session.phoneNumber,
+    });
     await ctx.answerCbQuery('Відправлення скасовано.');
     await ctx.reply(
       'Надсилання звернення скасовано. Ви завжди можете створити нове у головному меню.',

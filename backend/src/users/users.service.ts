@@ -11,7 +11,6 @@ export class UsersService {
 
   async getUserByPhone(phone: string): Promise<User | null> {
     const normalized = phone.replace(/\D/g, ''); // убираем всё кроме цифр
-    console.log('Normalized phone:', normalized);
 
     return this.userModel.findOne({
       where: this.userModel.sequelize!.where(
