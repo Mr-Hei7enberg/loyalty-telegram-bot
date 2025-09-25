@@ -36,14 +36,14 @@ export class AnalyticsService {
       return { total: 0, actions: [] };
     }
 
-    const rows = await this.logModel.findAll({
+    const rows = (await this.logModel.findAll({
       attributes: [
         'action',
         [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
       ],
       group: ['action'],
       raw: true,
-    });
+    })) as unknown as Array<{ action: string; count: string | number | null }>;
 
     const actions = rows.map((row) => ({
       action: row.action,

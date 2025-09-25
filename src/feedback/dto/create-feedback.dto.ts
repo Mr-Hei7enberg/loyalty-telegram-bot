@@ -1,5 +1,5 @@
 import { IsIn, IsNotEmpty, IsString, MaxLength } from 'class-validator';
-import { FeedbackContactPreference } from '../feedback.types';
+import type { FeedbackContactPreference } from '../feedback.types';
 
 export class CreateFeedbackDto {
   @IsString()

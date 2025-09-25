@@ -6,13 +6,21 @@ import {
   ForeignKey,
   BelongsTo,
 } from 'sequelize-typescript';
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from 'sequelize';
 import { RegionNetwork } from './region-network.model';
 
 @Table({
   tableName: 'region_locations',
   timestamps: false,
 })
-export class RegionLocation extends Model<RegionLocation> {
+export class RegionLocation extends Model<
+  InferAttributes<RegionLocation, { omit: 'network' }>,
+  InferCreationAttributes<RegionLocation, { omit: 'network' }>
+> {
   @Column({
     type: DataType.STRING,
     primaryKey: true,
@@ -28,7 +36,7 @@ export class RegionLocation extends Model<RegionLocation> {
   declare networkId: string;
 
   @BelongsTo(() => RegionNetwork)
-  declare network?: RegionNetwork;
+  declare network?: NonAttribute<RegionNetwork>;
 
   @Column({
     type: DataType.STRING,

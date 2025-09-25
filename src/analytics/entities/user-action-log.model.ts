@@ -6,6 +6,12 @@ import {
   ForeignKey,
   BelongsTo,
 } from 'sequelize-typescript';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from 'sequelize';
 import { User } from '../../users/user.model';
 
 @Table({
@@ -13,13 +19,16 @@ import { User } from '../../users/user.model';
   timestamps: true,
   updatedAt: false,
 })
-export class UserActionLog extends Model<UserActionLog> {
+export class UserActionLog extends Model<
+  InferAttributes<UserActionLog>,
+  InferCreationAttributes<UserActionLog>
+> {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
     primaryKey: true,
   })
-  declare id: number;
+  declare id: CreationOptional<number>;
 
   @ForeignKey(() => User)
   @Column({
@@ -27,17 +36,17 @@ export class UserActionLog extends Model<UserActionLog> {
     allowNull: true,
     field: 'user_id',
   })
-  declare userId?: number | null;
+  declare userId: CreationOptional<number | null>;
 
   @BelongsTo(() => User)
-  declare user?: User;
+  declare user?: NonAttribute<User>;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
     field: 'phone_number',
   })
-  declare phoneNumber?: string | null;
+  declare phoneNumber: CreationOptional<string | null>;
 
   @Column({
     type: DataType.STRING,
@@ -49,5 +58,5 @@ export class UserActionLog extends Model<UserActionLog> {
     type: DataType.JSONB,
     allowNull: true,
   })
-  declare metadata?: Record<string, unknown> | null;
+  declare metadata: CreationOptional<Record<string, unknown> | null>;
 }
