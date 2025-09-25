@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { FeedbackEntry } from './entities/feedback.model';
-import { FeedbackContactPreference } from './feedback.types';
+import type { FeedbackContactPreference } from './feedback.types';
 
 export interface FeedbackPayload {
   phoneNumber: string;

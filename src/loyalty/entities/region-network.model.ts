@@ -7,6 +7,11 @@ import {
   BelongsTo,
   HasMany,
 } from 'sequelize-typescript';
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from 'sequelize';
 import { Region } from './region.model';
 import { RegionLocation } from './region-location.model';
 
@@ -14,7 +19,10 @@ import { RegionLocation } from './region-location.model';
   tableName: 'region_networks',
   timestamps: false,
 })
-export class RegionNetwork extends Model<RegionNetwork> {
+export class RegionNetwork extends Model<
+  InferAttributes<RegionNetwork, { omit: 'region' | 'locations' }>,
+  InferCreationAttributes<RegionNetwork, { omit: 'region' | 'locations' }>
+> {
   @Column({
     type: DataType.STRING,
     primaryKey: true,
@@ -30,7 +38,7 @@ export class RegionNetwork extends Model<RegionNetwork> {
   declare regionId: string;
 
   @BelongsTo(() => Region)
-  declare region?: Region;
+  declare region?: NonAttribute<Region>;
 
   @Column({
     type: DataType.STRING,
@@ -39,5 +47,5 @@ export class RegionNetwork extends Model<RegionNetwork> {
   declare title: string;
 
   @HasMany(() => RegionLocation)
-  declare locations?: RegionLocation[];
+  declare locations?: NonAttribute<RegionLocation[]>;
 }

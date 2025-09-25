@@ -6,13 +6,21 @@ import {
   ForeignKey,
   BelongsTo,
 } from 'sequelize-typescript';
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from 'sequelize';
 import { DiscountGroup } from './discount-group.model';
 
 @Table({
   tableName: 'discount_items',
   timestamps: false,
 })
-export class DiscountItem extends Model<DiscountItem> {
+export class DiscountItem extends Model<
+  InferAttributes<DiscountItem, { omit: 'group' }>,
+  InferCreationAttributes<DiscountItem, { omit: 'group' }>
+> {
   @Column({
     type: DataType.STRING,
     primaryKey: true,
@@ -28,7 +36,7 @@ export class DiscountItem extends Model<DiscountItem> {
   declare groupId: string;
 
   @BelongsTo(() => DiscountGroup)
-  declare group?: DiscountGroup;
+  declare group?: NonAttribute<DiscountGroup>;
 
   @Column({
     type: DataType.STRING,

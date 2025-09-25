@@ -1,17 +1,25 @@
 import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 
 @Table({
   tableName: 'feedback_entries',
   timestamps: true,
   updatedAt: false,
 })
-export class FeedbackEntry extends Model<FeedbackEntry> {
+export class FeedbackEntry extends Model<
+  InferAttributes<FeedbackEntry>,
+  InferCreationAttributes<FeedbackEntry>
+> {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
     primaryKey: true,
   })
-  declare id: number;
+  declare id: CreationOptional<number>;
 
   @Column({
     type: DataType.STRING,
