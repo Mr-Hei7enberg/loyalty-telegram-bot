@@ -12,9 +12,11 @@ import { PurchasesService } from './services/purchases.service';
 import { LoyaltyService } from './services/loyalty.service';
 import { DynamicCodeService } from './services/dynamic-code.service';
 import { LoyaltyController } from './loyalty.controller';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     SequelizeModule.forFeature([
       Purchase,
       DiscountGroup,
