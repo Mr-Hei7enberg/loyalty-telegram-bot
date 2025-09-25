@@ -22,12 +22,13 @@ export class DiscountCatalogService {
       include: [
         {
           model: DiscountItem,
+          as: 'items',
           attributes: ['id', 'title'],
         },
       ],
       order: [
         ['title', 'ASC'],
-        [DiscountItem, 'title', 'ASC'],
+        [{ model: DiscountItem, as: 'items' }, 'title', 'ASC'],
       ],
     });
   }
@@ -40,10 +41,11 @@ export class DiscountCatalogService {
       include: [
         {
           model: DiscountItem,
+          as: 'items',
           attributes: ['id', 'title'],
         },
       ],
-      order: [[DiscountItem, 'title', 'ASC']],
+      order: [[{ model: DiscountItem, as: 'items' }, 'title', 'ASC']],
     });
   }
 
