@@ -3,12 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Op } from 'sequelize';
 import { Purchase } from '../entities/purchase.model';
 import { calculateDiscount } from '../utils/discount.utils';
-
-export interface MonthlyPurchaseStats {
-  uniqueDays: number;
-  totalChecks: number;
-  discountPercent: number;
-}
+import { MonthlyPurchaseStats } from '../interfaces/monthly-purchase-stats.interface';
 
 @Injectable()
 export class PurchasesService {

@@ -9,6 +9,7 @@ import {
 import { LoyaltyService } from './services/loyalty.service';
 import { DynamicCodeService } from './services/dynamic-code.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { LoyaltyUserInfoResponse } from './dto/user-info.dto';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -19,7 +20,9 @@ export class LoyaltyController {
   ) {}
 
   @Get('user-info')
-  async getUserInfo(@Query('phone') phone: string) {
+  async getUserInfo(
+    @Query('phone') phone: string,
+  ): Promise<LoyaltyUserInfoResponse> {
     if (!phone) {
       throw new BadRequestException('Потрібно передати номер телефону.');
     }

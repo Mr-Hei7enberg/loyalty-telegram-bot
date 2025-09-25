@@ -3,6 +3,7 @@ import { UsersService } from '../../users/users.service';
 import { DiscountCatalogService } from './discount-catalog.service';
 import { RegionDirectoryService } from './region-directory.service';
 import { PurchasesService } from './purchases.service';
+import { LoyaltyUserInfo } from '../dto/user-info.dto';
 
 @Injectable()
 export class LoyaltyService {
@@ -13,7 +14,7 @@ export class LoyaltyService {
     private readonly regionDirectoryService: RegionDirectoryService,
   ) {}
 
-  async getUserInfoByPhone(phone: string) {
+  async getUserInfoByPhone(phone: string): Promise<LoyaltyUserInfo | null> {
     const user = await this.usersService.getUserByPhone(phone);
 
     if (!user) {
@@ -22,13 +23,15 @@ export class LoyaltyService {
 
     const stats = await this.purchasesService.getMonthlyStats(user.id);
 
-    return {
+    const userInfo: LoyaltyUserInfo = {
       id: user.id,
       phone: user.phone,
       cardNumber: user.card_number ?? null,
       discountPercent: stats.discountPercent,
       monthlyStats: stats,
     };
+
+    return userInfo;
   }
 
   getDiscountGroups() {
