@@ -23,7 +23,7 @@ interface TestUserConfig {
 
 const TEST_USERS: TestUserConfig[] = [
   {
-    phone: '+380501234567',
+    phone: '380501234567',
     cardNumber: '700000000001',
     purchases: [
       { day: 2, totalAmount: 820.4 },
@@ -42,7 +42,7 @@ const TEST_USERS: TestUserConfig[] = [
     ],
   },
   {
-    phone: '+380671112233',
+    phone: '380671112233',
     cardNumber: '700000000002',
     purchases: [
       { day: 1, totalAmount: 540.0 },
@@ -62,7 +62,7 @@ const TEST_USERS: TestUserConfig[] = [
     ],
   },
   {
-    phone: '+380931009988',
+    phone: '380931009988',
     cardNumber: '700000000003',
     purchases: [
       { day: 1, totalAmount: 480.7 },
@@ -79,6 +79,45 @@ const TEST_USERS: TestUserConfig[] = [
       { action: 'bot_start' },
       { action: 'view_discount', metadata: { source: 'shortcut_button' } },
       { action: 'open_card_code' },
+      { action: 'send_feedback' },
+    ],
+  },
+  {
+    phone: '380975025543',
+    cardNumber: '700000000004',
+    purchases: [
+      { day: 3, totalAmount: 715.4 },
+      { day: 9, totalAmount: 410.3 },
+      { day: 19, totalAmount: 512.6 },
+      { day: 25, totalAmount: 398.45 },
+    ],
+    feedback: {
+      contactPreference: 'telegram',
+      message: 'Додайте будь ласка можливість перегляду історії покупок.',
+    },
+    actions: [
+      { action: 'bot_start' },
+      { action: 'open_networks', metadata: { region: 'lvivska' } },
+      { action: 'view_discount', metadata: { source: 'main_menu' } },
+    ],
+  },
+  {
+    phone: '380982572607',
+    cardNumber: '700000000005',
+    purchases: [
+      { day: 2, totalAmount: 520.6 },
+      { day: 6, totalAmount: 330.0 },
+      { day: 11, totalAmount: 408.9 },
+      { day: 15, totalAmount: 295.75 },
+      { day: 22, totalAmount: 612.8 },
+      { day: 28, totalAmount: 780.25 },
+      { day: 29, totalAmount: 415.2 },
+      { day: 30, totalAmount: 650.0 },
+    ],
+    actions: [
+      { action: 'bot_start' },
+      { action: 'open_card_code' },
+      { action: 'generate_card_code' },
       { action: 'send_feedback' },
     ],
   },
