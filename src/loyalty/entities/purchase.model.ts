@@ -6,6 +6,12 @@ import {
   ForeignKey,
   BelongsTo,
 } from 'sequelize-typescript';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from 'sequelize';
 import { User } from '../../users/user.model';
 
 @Table({
@@ -13,13 +19,16 @@ import { User } from '../../users/user.model';
   timestamps: true,
   updatedAt: false,
 })
-export class Purchase extends Model<Purchase> {
+export class Purchase extends Model<
+  InferAttributes<Purchase, { omit: 'user' }>,
+  InferCreationAttributes<Purchase, { omit: 'user' }>
+> {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
     primaryKey: true,
   })
-  declare id: number;
+  declare id: CreationOptional<number>;
 
   @ForeignKey(() => User)
   @Column({
@@ -30,7 +39,7 @@ export class Purchase extends Model<Purchase> {
   declare userId: number;
 
   @BelongsTo(() => User)
-  declare user?: User;
+  declare user?: NonAttribute<User>;
 
   @Column({
     type: DataType.DATEONLY,
@@ -44,5 +53,5 @@ export class Purchase extends Model<Purchase> {
     allowNull: true,
     field: 'total_amount',
   })
-  declare totalAmount?: number | null;
+  declare totalAmount: CreationOptional<number | null>;
 }
