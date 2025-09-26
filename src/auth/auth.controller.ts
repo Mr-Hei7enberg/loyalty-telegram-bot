@@ -18,10 +18,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  async login(
-    @Body() body: LoginRequestDto,
-    @Query() query: LoginRequestDto,
-  ) {
+  async login(@Body() body: LoginRequestDto, @Query() query: LoginRequestDto) {
     const dto = this.resolveLoginPayload(body, query);
     const { token, expiresIn } = await this.authService.login(
       dto.clientId,
