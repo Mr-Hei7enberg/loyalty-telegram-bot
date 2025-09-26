@@ -168,6 +168,7 @@ npm run test
 ## Деплой на Render (Docker Web Service)
 
 1. **Підготуйте репозиторій.** Усі релевантні зміни мають бути закомічені. У корені вже додано `Dockerfile` та `.dockerignore`, які збирають застосунок у два етапи: білд (`npm ci && npm run build`) та легкий runtime з `node dist/main`.
+
 2. **Створіть інфраструктуру.**
    - У Render Console додайте Managed PostgreSQL і Redis. Збережіть хости, порти, користувачів і паролі.
    - Якщо Redis видає TLS-параметри, встановіть `REDIS_USE_TLS=true`.

@@ -31,4 +31,4 @@ COPY --from=builder /app/dist ./dist
 ENV PORT=3000
 EXPOSE 3000
 
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]
