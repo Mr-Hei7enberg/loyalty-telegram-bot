@@ -38,19 +38,14 @@ export class PurchasesService {
   }
 
   private getMonthRange(referenceDate: Date) {
-    const start = new Date(
-      referenceDate.getFullYear(),
-      referenceDate.getMonth(),
-      1,
-    )
+    const year = referenceDate.getFullYear();
+    const monthIndex = referenceDate.getMonth();
+
+    const start = new Date(Date.UTC(year, monthIndex, 1))
       .toISOString()
       .slice(0, 10);
 
-    const endDate = new Date(
-      referenceDate.getFullYear(),
-      referenceDate.getMonth() + 1,
-      0,
-    )
+    const endDate = new Date(Date.UTC(year, monthIndex + 1, 0))
       .toISOString()
       .slice(0, 10);
 
