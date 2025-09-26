@@ -164,3 +164,26 @@ npm run test
 ## Звернення
 
 Записи зі зверненнями зберігаються у таблиці `feedback_entries`. Надалі можна інтегрувати відправлення email або webhooks у сервісі `FeedbackService`.
+
+## Деплой на Render (Docker Web Service)
+
+1. **Підготуйте репозиторій.** Усі релевантні зміни мають бути закомічені. У корені вже додано `Dockerfile` та `.dockerignore`, які збирають застосунок у два етапи: білд (`npm ci && npm run build`) та легкий runtime з `node dist/main`.
+2. **Створіть інфраструктуру.**
+   - У Render Console додайте Managed PostgreSQL і Redis. Збережіть хости, порти, користувачів і паролі.
+   - Якщо Redis видає TLS-параметри, встановіть `REDIS_USE_TLS=true`.
+3. **Запустіть Docker Web Service.**
+   - Runtime: **Docker**.
+   - Repository: вкажіть GitHub-репозиторій бота й виберіть гілку з `Dockerfile`.
+   - Render самостійно виконає `docker build`. Додаткові Build/Start команди не потрібні.
+   - У розділі Environment додайте всі змінні (`POSTGRES_*`, `REDIS_*`, `BOT_TOKEN`, `AUTH_*`, `PORT`, `TELEGRAM_WEBHOOK_*`). Render передає `PORT` автоматично, але значення у `.env` лишається як дефолт.
+4. **Налаштуйте вебхук Telegram.**
+   - Після деплою вкажіть `TELEGRAM_WEBHOOK_DOMAIN`, наприклад `https://<service-name>.onrender.com`, і задайте унікальний `TELEGRAM_WEBHOOK_PATH`.
+   - За потреби встановіть `TELEGRAM_WEBHOOK_SECRET`, щоб Telegram додавав заголовок `X-Telegram-Bot-Api-Secret-Token`.
+   - Перезапустіть сервіс. При старті NestJS підключить `webhookCallback`, а Telegraf зареєструє вебхук автоматично.
+5. **Посійте тестові дані (опційно).** Запустіть Render Shell або тимчасовий job і виконайте `npm run seed:test-data`.
+6. **Перевірте роботу.**
+   - Health-check: `https://<service-name>.onrender.com/` має повертати «Loyalty API працює.».
+   - Надішліть `/start` у Telegram: бот попросить номер телефону й відкриє меню.
+   - Переконайтесь у логах Render, що події `bot_start`, `user_authenticated`, `card_code_generated` з'являються без помилок.
+
+> **Порада.** Якщо сервіс масштабується на кілька інстансів, Redis Render слугуватиме спільним кешем для динамічних QR-кодів, тому вони лишатимуться валідними незалежно від екземпляра, що їх згенерував.
