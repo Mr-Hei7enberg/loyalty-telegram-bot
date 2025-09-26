@@ -43,6 +43,9 @@ NestJS сервіс для програми лояльності мережі А
 | `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Параметри підключення до PostgreSQL. |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` (необов'язково), `REDIS_USE_TLS` | Налаштування підключення до Redis. |
 | `BOT_TOKEN` | Токен Telegram-бота. |
+| `TELEGRAM_WEBHOOK_DOMAIN` | Публічний HTTPS-домен для приймання вебхуків (обов'язково для продакшну, напр., `https://your-app.onrender.com`). |
+| `TELEGRAM_WEBHOOK_PATH` | Шлях вебхука (за замовчуванням `/telegram/webhook`). Використовуйте унікальний секретний сегмент. |
+| `TELEGRAM_WEBHOOK_SECRET` | Необов'язковий секрет для заголовка `X-Telegram-Bot-Api-Secret-Token`. |
 | `AUTH_CLIENT_ID`, `AUTH_CLIENT_SECRET`, `AUTH_JWT_SECRET`, `AUTH_TOKEN_TTL` | Налаштування API-авторизації. `AUTH_TOKEN_TTL` за замовчуванням 3600 секунд. |
 | `PORT` | Порт HTTP сервера (за замовчуванням 3000). |
 | `DB_LOGGING` | Встановіть `true`, щоб бачити SQL у логах. |
@@ -138,6 +141,8 @@ npm run seed:test-data
    ```
 
 Telegram-бот буде активовано автоматично після підключення до Bot API.
+
+> **Вебхуки.** Локально застосунок працює через long polling. Якщо в `.env` вказано `TELEGRAM_WEBHOOK_DOMAIN`, бот автоматично переходитиме у режим вебхука; NestJS прийматиме оновлення за шляхом `TELEGRAM_WEBHOOK_PATH`.
 
 ## Тести та лінтинг
 

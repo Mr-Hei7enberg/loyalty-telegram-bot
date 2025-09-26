@@ -18,6 +18,16 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const token = configService.get<string>('BOT_TOKEN');
+        const webhookDomain = configService.get<string>(
+          'TELEGRAM_WEBHOOK_DOMAIN',
+        );
+        const webhookPath = configService.get<string>(
+          'TELEGRAM_WEBHOOK_PATH',
+          '/telegram/webhook',
+        );
+        const webhookSecret = configService.get<string>(
+          'TELEGRAM_WEBHOOK_SECRET',
+        );
 
         if (!token) {
           throw new Error('BOT_TOKEN is not defined in environment variables');
@@ -26,6 +36,15 @@ import { AnalyticsModule } from '../analytics/analytics.module';
         return {
           token,
           middlewares: [session()],
+          launchOptions: webhookDomain
+            ? {
+                webhook: {
+                  domain: webhookDomain,
+                  path: webhookPath,
+                  secretToken: webhookSecret || undefined,
+                },
+              }
+            : undefined,
         };
       },
     }),
