@@ -43,6 +43,9 @@ NestJS сервіс для програми лояльності мережі А
 | `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Параметри підключення до PostgreSQL. |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` (необов'язково), `REDIS_USE_TLS` | Налаштування підключення до Redis. |
 | `BOT_TOKEN` | Токен Telegram-бота. |
+| `TELEGRAM_WEBHOOK_DOMAIN` | Публічний HTTPS-домен для приймання вебхуків (обов'язково для продакшну, напр., `https://your-app.onrender.com`). |
+| `TELEGRAM_WEBHOOK_PATH` | Шлях вебхука (за замовчуванням `/telegram/webhook`). Використовуйте унікальний секретний сегмент. |
+| `TELEGRAM_WEBHOOK_SECRET` | Необов'язковий секрет для заголовка `X-Telegram-Bot-Api-Secret-Token`. |
 | `AUTH_CLIENT_ID`, `AUTH_CLIENT_SECRET`, `AUTH_JWT_SECRET`, `AUTH_TOKEN_TTL` | Налаштування API-авторизації. `AUTH_TOKEN_TTL` за замовчуванням 3600 секунд. |
 | `PORT` | Порт HTTP сервера (за замовчуванням 3000). |
 | `DB_LOGGING` | Встановіть `true`, щоб бачити SQL у логах. |
@@ -139,6 +142,8 @@ npm run seed:test-data
 
 Telegram-бот буде активовано автоматично після підключення до Bot API.
 
+> **Вебхуки.** Локально застосунок працює через long polling. Якщо в `.env` вказано `TELEGRAM_WEBHOOK_DOMAIN`, бот автоматично переходитиме у режим вебхука; NestJS прийматиме оновлення за шляхом `TELEGRAM_WEBHOOK_PATH`.
+
 ## Тести та лінтинг
 
 ```bash
@@ -159,3 +164,26 @@ npm run test
 ## Звернення
 
 Записи зі зверненнями зберігаються у таблиці `feedback_entries`. Надалі можна інтегрувати відправлення email або webhooks у сервісі `FeedbackService`.
+
+## Деплой на Render (Docker Web Service)
+
+1. **Підготуйте репозиторій.** Усі релевантні зміни мають бути закомічені. У корені вже додано `Dockerfile` та `.dockerignore`, які збирають застосунок у два етапи: білд (`npm ci && npm run build`) та легкий runtime з `node dist/src/main`.
+2. **Створіть інфраструктуру.**
+   - У Render Console додайте Managed PostgreSQL і Redis. Збережіть хости, порти, користувачів і паролі.
+   - Якщо Redis видає TLS-параметри, встановіть `REDIS_USE_TLS=true`.
+3. **Запустіть Docker Web Service.**
+   - Runtime: **Docker**.
+   - Repository: вкажіть GitHub-репозиторій бота й виберіть гілку з `Dockerfile`.
+   - Render самостійно виконає `docker build`. Додаткові Build/Start команди не потрібні.
+   - У розділі Environment додайте всі змінні (`POSTGRES_*`, `REDIS_*`, `BOT_TOKEN`, `AUTH_*`, `PORT`, `TELEGRAM_WEBHOOK_*`). Render передає `PORT` автоматично, але значення у `.env` лишається як дефолт.
+4. **Налаштуйте вебхук Telegram.**
+   - Після деплою вкажіть `TELEGRAM_WEBHOOK_DOMAIN`, наприклад `https://<service-name>.onrender.com`, і задайте унікальний `TELEGRAM_WEBHOOK_PATH`.
+   - За потреби встановіть `TELEGRAM_WEBHOOK_SECRET`, щоб Telegram додавав заголовок `X-Telegram-Bot-Api-Secret-Token`.
+   - Перезапустіть сервіс. При старті NestJS підключить `webhookCallback`, а Telegraf зареєструє вебхук автоматично.
+5. **Посійте тестові дані (опційно).** Запустіть Render Shell або тимчасовий job і виконайте `npm run seed:test-data`.
+6. **Перевірте роботу.**
+   - Health-check: `https://<service-name>.onrender.com/` має повертати «Loyalty API працює.».
+   - Надішліть `/start` у Telegram: бот попросить номер телефону й відкриє меню.
+   - Переконайтесь у логах Render, що події `bot_start`, `user_authenticated`, `card_code_generated` з'являються без помилок.
+
+> **Порада.** Якщо сервіс масштабується на кілька інстансів, Redis Render слугуватиме спільним кешем для динамічних QR-кодів, тому вони лишатимуться валідними незалежно від екземпляра, що їх згенерував.
