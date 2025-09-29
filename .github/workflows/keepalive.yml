@@ -1,0 +1,41 @@
+name: Keep Render bot warm
+
+on:
+  schedule:
+    - cron: "*/14 * * * *"   # каждые 14 минут
+  workflow_dispatch:
+
+concurrency:
+  group: keepalive-render
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping Render root health endpoint
+        run: |
+          URL="https://loyalty-telegram-bot.onrender.com/"
+          echo "Pinging: $URL"
+
+          RESPONSE=$(curl -sS \
+            --retry 5 --retry-delay 5 --retry-all-errors \
+            --connect-timeout 10 --max-time 20 \
+            -H "User-Agent: gh-actions-keepalive (+https://github.com/${GITHUB_REPOSITORY})" \
+            -w "\nHTTP_CODE:%{http_code}" \
+            "$URL")
+
+          HTTP_CODE=$(echo "$RESPONSE" | sed -n 's/.*HTTP_CODE:\([0-9]\+\)$/\1/p')
+          BODY=$(echo "$RESPONSE" | sed 's/HTTP_CODE:[0-9]\+$//')
+
+          echo "Response body:"
+          echo "$BODY"
+          echo "HTTP status: $HTTP_CODE"
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 500 ]; then
+            exit 0
+          else
+            echo "Failed to reach service (HTTP $HTTP_CODE)"
+            exit 1
+          fi
