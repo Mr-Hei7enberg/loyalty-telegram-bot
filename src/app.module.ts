@@ -20,6 +20,18 @@ import { AuthModule } from './auth/auth.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { UserActionLog } from './analytics/entities/user-action-log.model';
 
+const parseBoolean = (value?: string | boolean): boolean => {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (!value) {
+    return false;
+  }
+
+  return ['true', '1', 'yes', 'y', 'on'].includes(value.trim().toLowerCase());
+};
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -45,7 +57,9 @@ import { UserActionLog } from './analytics/entities/user-action-log.model';
           UserActionLog,
         ],
         autoLoadModels: true,
-        synchronize: true,
+        synchronize: parseBoolean(
+          configService.get<string | boolean>('DB_SYNCHRONIZE'),
+        ),
         logging: configService.get('DB_LOGGING') === 'true',
       }),
     }),
