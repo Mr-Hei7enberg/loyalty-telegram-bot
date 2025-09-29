@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { User } from './users/user.model';
 import { TelegramModule } from './telegram/telegram.module';
@@ -54,5 +56,7 @@ import { UserActionLog } from './analytics/entities/user-action-log.model';
     AuthModule,
     TelegramModule, // ← обязательно
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
