@@ -16,6 +16,19 @@ async function bootstrap() {
     }),
   );
   const configService = app.get(ConfigService);
+  const adminOrigins = configService.get<string>('ADMIN_FRONTEND_ORIGINS');
+  const allowedOrigins = adminOrigins
+    ? adminOrigins
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter((origin) => origin.length > 0)
+    : ['http://localhost:5173'];
+  const allowAnyOrigin = allowedOrigins.includes('*');
+
+  app.enableCors({
+    origin: allowAnyOrigin ? true : allowedOrigins,
+    credentials: true,
+  });
   const webhookDomain = configService.get<string>('TELEGRAM_WEBHOOK_DOMAIN');
 
   if (webhookDomain) {

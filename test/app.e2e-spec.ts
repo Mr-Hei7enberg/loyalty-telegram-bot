@@ -18,6 +18,6 @@ describe('AppController (e2e)', () => {
   it('/ (GET)', async () => {
     const server = app.getHttpServer() as Parameters<typeof request>[0];
 
-    await request(server).get('/').expect(200).expect('Hello World!');
+    await request(server).get('/').expect(200).expect('Loyalty API працює.');
   });
 });
