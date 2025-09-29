@@ -20,8 +20,8 @@
       </thead>
       <tbody>
         <tr v-for="item in summary.actions" :key="item.action">
-          <td data-label="Дія">{{ item.action }}</td>
-          <td class="count" data-label="Кількість">{{ item.count }}</td>
+          <td>{{ item.action }}</td>
+          <td>{{ item.count }}</td>
         </tr>
       </tbody>
     </table>
@@ -42,11 +42,10 @@ defineEmits<{ refresh: [] }>();
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 16px;
-  padding: clamp(20px, 5vw, 24px);
+  padding: 24px;
   backdrop-filter: blur(14px);
   color: #0f172a;
   background-color: rgba(248, 250, 252, 0.9);
-  box-sizing: border-box;
 }
 
 .summary-header {
@@ -79,10 +78,6 @@ defineEmits<{ refresh: [] }>();
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   color: #64748b;
-}
-
-.summary-table .count {
-  font-variant-numeric: tabular-nums;
 }
 
 .refresh {
@@ -130,48 +125,4 @@ defineEmits<{ refresh: [] }>();
   }
 }
 
-@media (max-width: 540px) {
-  .summary-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-  }
-
-  .summary-table thead {
-    display: none;
-  }
-
-  .summary-table tbody {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .summary-table tr {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px 14px;
-    border: 1px solid rgba(148, 163, 184, 0.25);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.75);
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-  }
-
-  .summary-table td {
-    border: none;
-    padding: 0;
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: 0.95rem;
-  }
-
-  .summary-table td::before {
-    content: attr(data-label);
-    color: #64748b;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-  }
-}
 </style>

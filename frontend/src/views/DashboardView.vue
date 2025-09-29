@@ -88,11 +88,10 @@ onMounted(() => {
   gap: 24px;
   width: min(960px, 100%);
   margin: 0 auto;
-  padding: clamp(24px, 5vw, 32px);
+  padding: 32px;
   background: rgba(248, 250, 252, 0.8);
   border-radius: 24px;
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.4);
-  box-sizing: border-box;
 }
 
 .dashboard-header {
@@ -154,32 +153,4 @@ onMounted(() => {
   }
 }
 
-@media (max-width: 640px) {
-  .dashboard {
-    border-radius: 20px;
-    background: rgba(248, 250, 252, 0.95);
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.35);
-  }
-
-  .dashboard-header {
-    gap: 14px;
-  }
-}
-
-@media (max-width: 480px) {
-  .dashboard {
-    padding: 20px;
-    gap: 16px;
-  }
-
-  .dashboard-header h1 {
-    font-size: 1.6rem;
-    line-height: 1.25;
-  }
-
-  .logout {
-    font-size: 1rem;
-    padding: 12px 16px;
-  }
-}
 </style>

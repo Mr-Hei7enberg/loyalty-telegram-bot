@@ -78,13 +78,11 @@ function onSubmit() {
   background: rgba(15, 23, 42, 0.75);
   border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 18px;
-  padding: clamp(24px, 6vw, 32px);
+  padding: 32px;
   max-width: 420px;
   width: 100%;
   color: #f8fafc;
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(18px);
-  box-sizing: border-box;
 }
 
 .card-header {
@@ -93,17 +91,11 @@ function onSubmit() {
   gap: 8px;
   margin-bottom: 24px;
 }
-
-.card-header h1 {
-  margin: 0;
-  font-size: clamp(1.5rem, 5vw, 1.85rem);
-  line-height: 1.2;
-}
-
+  
 .subtitle {
   margin: 0;
   color: #cbd5f5;
-  font-size: clamp(0.95rem, 3.4vw, 1rem);
+  font-size: 0.95rem;
 }
 
 .form {
@@ -120,7 +112,7 @@ function onSubmit() {
 }
 
 .field input {
-  padding: 12px 14px;
+  padding: 12px;
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.2);
   background: rgba(15, 23, 42, 0.35);
@@ -144,10 +136,6 @@ function onSubmit() {
   cursor: pointer;
   box-shadow: 0 15px 35px rgba(99, 102, 241, 0.35);
   transition: transform 0.15s ease, box-shadow 0.2s ease;
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .submit:disabled {
@@ -170,29 +158,9 @@ function onSubmit() {
   border-radius: 10px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 520px) {
   .card {
-    border-radius: 20px;
-  }
-
-  .subtitle {
-    font-size: 0.95rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .card {
-    padding: 20px;
-    border-radius: 18px;
-  }
-
-  .card-header {
-    margin-bottom: 20px;
-    gap: 12px;
-  }
-
-  .form {
-    gap: 14px;
+    padding: 24px;
   }
 }
 </style>

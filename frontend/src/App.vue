@@ -85,7 +85,7 @@ function handleLoggedOut() {
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  width: min(560px, 100%);
+  width: 100%;
 }
 
 .info {
@@ -105,21 +105,5 @@ function handleLoggedOut() {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-@media (max-width: 640px) {
-  .page {
-    align-items: flex-start;
-    padding: 16px;
-  }
-
-  .content {
-    align-items: stretch;
-    gap: 20px;
-  }
-
-  .info {
-    font-size: 0.95rem;
-  }
 }
 </style>
