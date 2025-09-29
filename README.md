@@ -47,6 +47,7 @@ NestJS сервіс для програми лояльності мережі А
 | `TELEGRAM_WEBHOOK_PATH` | Шлях вебхука (за замовчуванням `/telegram/webhook`). Використовуйте унікальний секретний сегмент. |
 | `TELEGRAM_WEBHOOK_SECRET` | Необов'язковий секрет для заголовка `X-Telegram-Bot-Api-Secret-Token`. |
 | `AUTH_CLIENT_ID`, `AUTH_CLIENT_SECRET`, `AUTH_JWT_SECRET`, `AUTH_TOKEN_TTL` | Налаштування API-авторизації. `AUTH_TOKEN_TTL` за замовчуванням 3600 секунд. |
+| `ADMIN_FRONTEND_ORIGINS` | Кома-сепарований список дозволених origin для CORS (напр., `https://admin.example.com`). Значення `*` дозволяє всі походження. |
 | `PORT` | Порт HTTP сервера (за замовчуванням 3000). |
 | `DB_LOGGING` | Встановіть `true`, щоб бачити SQL у логах. |
 
@@ -68,6 +69,31 @@ NestJS сервіс для програми лояльності мережі А
 | `GET` | `/admin/analytics` | Узагальнена статистика використання бота. |
 
 Усі запити (окрім `/auth/login`) потребують заголовок `Authorization: Bearer <token>`.
+
+## Адмінський фронтенд (Vite + Vue)
+
+Для роботи адміністративної панелі статистики фронтенд винесено в окремий проєкт на Vite/Vue у каталозі [`frontend`](./frontend).
+Бекенд більше не віддає HTML (колишній `AnalyticsFrontendController` видалено), тому адміністраторська панель завжди звертається
+до REST API.
+
+### Локальний запуск
+
+1. Перейдіть у директорію фронтенду та встановіть залежності:
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Запустіть дев-сервер Vite (за замовчуванням порт `5173`):
+   ```bash
+   npm run dev
+   ```
+3. Переконайтесь, що бекенд запущено на `http://localhost:3000`. Vite автоматично проксуватиме запити `/auth/*` та `/admin/*` до бекенду.
+
+> **ENV.** Для розміщення фронтенду окремо від бекенду задайте `VITE_API_BASE_URL` (напр., `https://api.example.com`). На бекенді вкажіть `ADMIN_FRONTEND_ORIGINS`, перелік дозволених origin через кому (напр., `https://admin.example.com,https://staging-admin.example.com`). Значення `*` відкриває доступ для будь-якого origin.
+
+### Продакшн-збірка
+
+Виконайте `npm run build` у папці `frontend` — збірка з’явиться у `frontend/dist`. Статичні файли можна задеплоїти на CDN або будь-який static hosting.
 
 ### Формат відповіді `/user-info`
 
