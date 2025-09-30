@@ -99,11 +99,11 @@ export class DynamicCodeService {
   }
 
   formatExpiry(expiresAt: number) {
-   return new Intl.DateTimeFormat('uk-UA', {
-     hour: '2-digit',
-     minute: '2-digit',
-     timeZone: 'Europe/Kyiv',
-   }).format(expiresAt);
+    return new Intl.DateTimeFormat('uk-UA', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Kyiv',
+    }).format(expiresAt);
   }
 
   private buildRedisKey(value: string) {
