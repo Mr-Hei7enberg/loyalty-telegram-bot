@@ -2,7 +2,7 @@ name: Keep Render bot warm
 
 on:
   schedule:
-    - cron: "*/14 * * * *"   # каждые 14 минут
+    - cron: "* * * * *"   # каждые 14 минут
   workflow_dispatch:
 
 concurrency:
